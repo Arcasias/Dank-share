@@ -1,0 +1,82 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 220px;
+    font-family: 'Calibri';
+    font-size: 14px;
+}
+
+h1 {
+    margin: 0;
+    font-family: 'Helvetica';
+    font-size: 22px;
+    font-weight: 400;
+}
+
+a:link, a:visited {
+    color: black;
+    outline: 0;
+    text-decoration: none;
+}
+
+button {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.pink { color: #f08; }
+.yellow { color: #fd0; }
+.blue { color: #08f; }
+
+.modal {
+    display: flex;
+    flex-flow: column;
+    border-radius: 3px;
+}
+.modal-header {
+    padding: 10px 20px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-content {
+    padding: 10px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    flex-flow: column;
+    justify-content: space-between;
+}
+
+.input {
+    border: 1px solid #eee;
+    padding: 5px;
+    width: 100%;
+    box-sizing:border-box;
+    border-radius: 3px;
+}
+
+.modal-footer {
+    width: 100%;
+    display: flex;
+}
+
+.logo .version {
+    color: #444;
+    font-size: 18px;
+}
+
+.icon {
+    padding: 15px 5px;
+    flex: 1;
+    opacity: 1;
+    transition: 0.1s;
+}
+
+.icon:hover {
+    background-color: #f5f5f5;
+}
+
+.icon i {
+    font-size: 24px;
+}

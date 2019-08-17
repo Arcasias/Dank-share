@@ -1,0 +1,34 @@
+{
+    "name": "Dank share",
+    "version": "1.1",
+    "description": "Share dank images",
+    "permissions": ["activeTab", "declarativeContent", "storage", "tabs"],
+    "background": {
+        "scripts": ["scripts/background.js"],
+        "persistent": false
+    },
+    "page_action": {
+        "default_popup": "popup/popup.html",
+        "default_icon": {
+            "16": "images/yeet16.png",
+            "32": "images/yeet32.png",
+            "48": "images/yeet48.png",
+            "128": "images/yeet128.png"
+        }
+    },
+    "icons": {
+        "16": "images/yeet16.png",
+        "32": "images/yeet32.png",
+        "48": "images/yeet48.png",
+        "128": "images/yeet128.png"
+    },
+    "content_scripts": [{
+        "matches": ["http://*/*", "https://*/*"],
+        "css": ["scripts/main.css"],
+        "js": ["scripts/main.js"]
+    }],
+    "manifest_version": 2,
+    "web_accessible_resources" : [
+        "images/*.png"
+    ]
+}

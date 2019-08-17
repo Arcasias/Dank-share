@@ -1,0 +1,48 @@
+.dank-share-img {
+    border-radius: 24px !important;
+    bottom: 0 !important;
+    height: 24px !important;
+    position: absolute !important;
+    right: 0 !important;
+    top: 0 !important;
+    width: 24px !important;
+}
+
+.dank-share-txt {
+    border-radius: 24px 0 0 24px !important;
+    bottom: 0 !important;
+    font-family: 'Calibri' !important;
+    font-size: 16px !important;
+    line-height: 16px !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    padding: 4px 8px !important;
+    position: absolute !important;
+    right: 12px !important;
+    text-align: left !important;
+    top: 0 !important;
+    transition: .15s !important;
+    width: 0 !important;
+}
+
+.dank-share-btn {
+    border: none !important;
+    border-radius: 24px !important;
+    cursor: pointer !important;
+    height: 24px !important;
+    opacity: 0.5 !important;
+    outline: 0 !important;
+    position: absolute !important;
+    transition: .15s !important;
+    width: 24px !important;
+    z-index: 9999 !important;
+}
+
+.dank-share-btn:hover {
+    opacity: 1 !important;
+}
+
+.dank-share-btn:hover .dank-share-txt {
+    opacity: 1 !important;
+    width: 44px !important;
+}
