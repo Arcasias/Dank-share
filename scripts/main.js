@@ -1,5 +1,9 @@
-(function () {
+chrome.storage.sync.get(['active'], function (result) {
 'use strict';
+
+if (!result.active) {
+    return;
+}
 
 /**
  * CONSTANTS
@@ -18,28 +22,19 @@ function randIndex(array) {
     return Math.floor(Math.random() * array.length);
 }
 
-function onNodeLoad(node, callback) {
-    if (node.getElementsByTagName) {
-        callback();
-    } else {
-        node.addEventListener('load', () => {
-            if (node.getElementsByTagName) {
-                callback()
-            }
-        });
-    }
-}
-
 function onImgLoad(img, callback) {
     if (img.complete) {
-        callback(img);
+        callback();
     } else {
-        img.addEventListener('load', callback.bind(null, img));
+        img.addEventListener('load', callback);
     }
 }
 
 function injectYeets(node) {
-    [...node.getElementsByTagName('img')].forEach(img => {
+    const imgs = node.tagName === 'IMG' ?
+        [node] : node.getElementsByTagName ?
+        [...node.getElementsByTagName('img')] : [];
+    imgs.forEach(img => {
         onImgLoad(img, () => {
             const rect = img.getBoundingClientRect();
             if (rect.width > MIN_WIDTH && rect.height > MIN_HEIGHT
@@ -47,9 +42,20 @@ function injectYeets(node) {
                 const yeet = new Yeet();
                 yeet.attachTo(img);
                 img_cache.push({ img, yeet });
+                console.log(img_cache.length);
+                // Remove last entry if cashe is full
+                if (img_cache.length > MAX_CACHE_SIZE) {
+                    const cached = img_cache.shift();
+                    cached.yeet.delete();
+                }
             }
         });
     });
+}
+
+function clearYeets() {
+    const cached = img_cache.shift();
+    cached.yeet.delete();
 }
 
 function getHue(r,g,b) {
@@ -183,23 +189,29 @@ class Yeet {
     }
 
     post(imgUrl) {
-        chrome.storage.sync.get(['webhookUrl'], result => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', result.webhookUrl, true);
-            xhr.setRequestHeader('Content-type', 'application/json');
-            xhr.send(JSON.stringify({
+        chrome.storage.sync.get(['webhooks'], result => {
+            const jsonData = JSON.stringify({
                 username: "Dank Share",
                 avatar_url: 'https://i.kym-cdn.com/photos/images/original/001/318/758/bbe.png',
                 embeds: [
                     {
-                        image: {
-                            url: imgUrl,
-                        },
+                        image: { url: imgUrl },
                         color: this.color.decimal,
                     },
                 ],
-            }));
-            console.log(`%cImage sent to "${result.webhookUrl}"`, `color: #${this.color.hex}`);
+            });
+            let sent = 0;
+            result.webhooks.forEach(webhook => {
+                if (!webhook.active) {
+                    return;
+                }
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', webhook.value, true);
+                xhr.setRequestHeader('Content-type', 'application/json');
+                xhr.send(jsonData);
+                sent ++;
+            });
+            console.log(`%cImage shared with ${sent} hooks.`, `color: #${this.color.hex}`);
         });
     }
 
@@ -227,25 +239,29 @@ class Yeet {
 // Observer looking for new images to inject
 const observer = new MutationObserver((list, observer) => {
     list.forEach(mutation => {
-        if (mutation.type !== 'childList') {
-            return;
+        let nodes = [];
+        switch (mutation.type) {
+            case 'attributes':
+                nodes = [mutation.target];
+                break;
+            case 'childList':
+                if (!mutation.addedNodes.length) {
+                    return;
+                }
+                nodes = [...mutation.addedNodes];
+                break;
         }
-        [...mutation.addedNodes].forEach(node => {
-            onNodeLoad(node, injectYeets.bind(null, node));
-        });
+        nodes.forEach(injectYeets);
     });
-    while (img_cache > MAX_CACHE_SIZE) {
-        const cached = img_cache.shift();
-        cached.yeet.delete();
-    }
 });
 observer.observe(document.body, {
-    attributes: false,
+    attributes: true,
+    attributeFilter: ['src'],
     childList: true,
     subtree: true,
 });
 
 // Initial injection
-injectYeets(document);
+injectYeets(document.body);
 
-})();
+});

@@ -10,18 +10,26 @@
     <div class="modal">
         <div class="modal-header">
             <h1 class="logo colored">
-                Dank Share <span class="version">(v1.1)</span>
+                Dank Share <span id="version"></span>
             </h1>
         </div>
         <div class="modal-content">
+            <h3 class="row colored">Webhooks (<span id="webhooks-amount"></span>)</h3>
+            <div class="row list-header">
+                <span>Alias</span>
+                <span>URL</span>
+            </div>
+            <div id="webhooks">
+                <div id="webhooks-empty" class="row">You have no webhooks !</div>
+            </div>
             <div class="row">
-                <input id="webhook-url" class="input colored" type="text" name="webhook" placeholder="Webhook">
+                <button id="action-add" class="colored">Add <i class="fas fa-plus"></i></button>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="icon" title="Save webhook">
-                <a id="btn-test" href="#">
-                    <i class="fas fa-save colored"></i>
+            <button class="icon" title="On/Off">
+                <a id="action-toggle" href="#">
+                    <i id="status" class="fas fa-circle"></i>
                 </a>
             </button>
             <button class="icon" title="Discord website">
@@ -29,8 +37,8 @@
                     <i class="fab fa-discord colored"></i>
                 </a>
             </button>
-            <button class="icon" title="Arcasias GitHub">
-                <a href="https://github.com/Arcasias" target="_blank">
+            <button class="icon" title="GitHub repository">
+                <a href="https://github.com/Arcasias/Dank-share" target="_blank">
                     <i class="fab fa-github colored"></i>
                 </a>
             </button>
