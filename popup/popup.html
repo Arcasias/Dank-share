@@ -9,22 +9,23 @@
 <body>
     <div class="modal">
         <div class="modal-header">
-            <h1 class="logo colored">
-                Dank Share <span id="version"></span>
+            <h1 class="title colored">
+                <img id="logo" src="" alt="Yeet"/>
+                Dank Share
+                <span id="version"></span>
             </h1>
         </div>
         <div class="modal-content">
-            <h3 class="row colored">Webhooks (<span id="webhooks-amount"></span>)</h3>
-            <div class="row list-header">
-                <span>Alias</span>
-                <span>URL</span>
+            <h3 class="colored">Username</h3>
+            <input id="username" class="colored" placeholder="Nickname ..." />
+            <h3 class="colored">Webhooks (<span id="webhooks-amount"></span>)</h3>
+            <div id="webhooks-container">
+                <table id="webhooks-table">
+                    <tbody id="webhooks-list"></tbody>
+                </table>
+                <div id="webhooks-empty">You have no webhooks !</div>
             </div>
-            <div id="webhooks">
-                <div id="webhooks-empty" class="row">You have no webhooks !</div>
-            </div>
-            <div class="row">
-                <button id="action-add" class="colored">Add <i class="fas fa-plus"></i></button>
-            </div>
+            <button id="action-add" class="colored">Add <i class="fas fa-plus"></i></button>
         </div>
         <div class="modal-footer">
             <button class="icon" title="On/Off">

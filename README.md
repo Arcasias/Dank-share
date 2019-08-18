@@ -11,9 +11,13 @@ Not yet released on the Chrome WebStore. Soon to come.
 - Click "Load unpacked"
 - Select the rep folder
 - Go to any tab, click the upper right wierd smiley icon
-- Paste your webhook, press Enter, and "voilà"
+- Edit your webhooks and start sharing !
 
 ## Feature details
-- Injects a sharing button on every image big enough to be shared on any tab
-- Currently supports only one webhook
+- Edit your webhooks and username in the extension pop-up
+- Injects a sharing button on every image big enough to be shared
+- Currently does not exclude any website
+- Send image to every active webhook
+- Can be turned off to prevent the injection
+- Headache-worthy color change can be switched off by clicked the logo icon
 - Not very reliable on Facebook

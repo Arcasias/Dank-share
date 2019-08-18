@@ -42,7 +42,6 @@ function injectYeets(node) {
                 const yeet = new Yeet();
                 yeet.attachTo(img);
                 img_cache.push({ img, yeet });
-                console.log(img_cache.length);
                 // Remove last entry if cashe is full
                 if (img_cache.length > MAX_CACHE_SIZE) {
                     const cached = img_cache.shift();
@@ -189,8 +188,8 @@ class Yeet {
     }
 
     post(imgUrl) {
-        chrome.storage.sync.get(['webhooks'], result => {
-            const jsonData = JSON.stringify({
+        chrome.storage.sync.get(['username', 'webhooks'], result => {
+            const embedData = {
                 username: "Dank Share",
                 avatar_url: 'https://i.kym-cdn.com/photos/images/original/001/318/758/bbe.png',
                 embeds: [
@@ -199,19 +198,24 @@ class Yeet {
                         color: this.color.decimal,
                     },
                 ],
-            });
+            };
+            if (result.username && result.username.length) {
+                embedData.embeds[0].footer = {
+                    text: `Sent by ${result.username}`,
+                };
+            }
             let sent = 0;
             result.webhooks.forEach(webhook => {
-                if (!webhook.active) {
+                if (!webhook.active || !webhook.url.length) {
                     return;
                 }
                 const xhr = new XMLHttpRequest();
-                xhr.open('POST', webhook.value, true);
+                xhr.open('POST', webhook.url, true);
                 xhr.setRequestHeader('Content-type', 'application/json');
-                xhr.send(jsonData);
+                xhr.send(JSON.stringify(embedData));
                 sent ++;
             });
-            console.log(`%cImage shared with ${sent} hooks.`, `color: #${this.color.hex}`);
+            console.log(`%cImage sent to ${sent} webhook${sent.length > 1 ? 's' : ''}.`, `color: #${this.color.hex}`);
         });
     }
 

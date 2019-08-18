@@ -3,7 +3,7 @@ chrome.runtime.onInstalled.addListener(function() {
         chrome.declarativeContent.onPageChanged.addRules([{
             conditions: [
                 new chrome.declarativeContent.PageStateMatcher({
-                    pageUrl: {schemes: ['http', 'https']},
+                    pageUrl: { schemes: ['http', 'https'] },
                 })
             ],
             actions: [
