@@ -10,7 +10,8 @@ const manifest = chrome.runtime.getManifest();
 const statusIcon =          document.getElementById('status');
 const versionNumber =       document.getElementById('version');
 const logo =                document.getElementById('logo');
-const username =            document.getElementById('username');
+const usernameInput =       document.getElementById('username');
+const imageSizeSelect =     document.getElementById('image-size');
 const webhooksList =        document.getElementById('webhooks-list');
 const webhooksTable =       document.getElementById('webhooks-table');
 const webhooksEmpty =       document.getElementById('webhooks-empty');
@@ -227,11 +228,11 @@ logo.onclick = ev => {
     }
 };
 
-username.onchange = ev => {
-    chrome.storage.sync.set({ username: username.value });
+usernameInput.onchange = ev => {
+    chrome.storage.sync.set({ username: usernameInput.value });
 };
-username.oninput = nameLimiter;
-username.onkeydown = ev => {
+usernameInput.oninput = nameLimiter;
+usernameInput.onkeydown = ev => {
     switch (ev.key) {
         case 'Enter':
             document.activeElement.blur();
@@ -243,6 +244,10 @@ username.onkeydown = ev => {
         default:
             break;
     }
+};
+
+imageSizeSelect.onchange = ev => {
+    chrome.storage.sync.set({ imageSize: parseInt(imageSizeSelect.value) });
 };
 
 actionAdd.onclick = ev => {
@@ -258,35 +263,18 @@ actionToggle.onclick = ev => {
     });
 };
 
-chrome.storage.sync.get(['username'], result => {
-    if (result.username) {
-        username.value = result.username;
-    } else {
-        chrome.storage.sync.set({ username: username.value });
+chrome.storage.sync.get(['active', 'imageSize', 'username', 'webhooks'], result => {
+    status = result.active;
+    usernameInput.value = result.username;
+    imageSizeSelect.value = result.imageSize;
+    result.webhooks.forEach(webhook => {
+        const { active, alias, url } = webhook;
+        new Webhook(url, active, alias);
+    });
+    if (!result.webhooks.length) {
+        Webhook.updateStyles();
     }
-});
-
-chrome.storage.sync.get(['webhooks'], result => {
-    if (result.webhooks) {
-        result.webhooks.forEach(webhook => {
-            const { active, alias, url } = webhook;
-            new Webhook(url, active, alias);
-        });
-        if (!result.webhooks.length) {
-            Webhook.updateStyles();
-        }
-    } else {
-        chrome.storage.sync.set({ webhooks: Webhook.list });
-    }
-});
-
-chrome.storage.sync.get(['active'], result => {
-    if ([true, false].includes(result.active)) {
-        status = result.active;
-        statusIcon.classList.toggle('on', status);
-    } else {
-        chrome.storage.sync.set({ active: true });
-    }
+    statusIcon.classList.toggle('on', status);
 });
 
 animate();

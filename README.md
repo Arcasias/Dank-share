@@ -19,5 +19,5 @@ Not yet released on the Chrome WebStore. Soon to come.
 - Currently does not exclude any website
 - Send image to every active webhook
 - Can be turned off to prevent the injection
-- Headache-worthy color change can be switched off by clicked the logo icon
+- Headache-worthy color change can be switched off by clicking the logo icon
 - Not very reliable on Facebook

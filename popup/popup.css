@@ -47,6 +47,11 @@ input::placeholder {
     color: #cacaca;
 }
 
+select {
+    border: none;
+    outline: none;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -77,6 +82,10 @@ i {
     display: flex;
     flex-flow: column;
     justify-content: space-between;
+}
+
+.option {
+    margin-bottom: 10px;
 }
 
 .activate {
@@ -243,13 +252,17 @@ tr:not(.editing) .remove {
 }
 
 #webhooks-container {
-    margin: 10px 0;
+    margin-top: 5px;
+    margin-bottom: 10px;
 }
 
 #username {
     background-color: #efefef;
     margin-top: 5px;
-    margin-bottom: 10px;
     padding-left: 3px;
     border-radius: 3px;
+}
+
+#image-size {
+    margin-top: 5px;
 }

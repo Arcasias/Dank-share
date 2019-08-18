@@ -10,14 +10,27 @@
     <div class="modal">
         <div class="modal-header">
             <h1 class="title colored">
-                <img id="logo" src="" alt="Yeet"/>
+                <img id="logo" src="" alt="Yeet" data-yeet="true"/>
                 Dank Share
                 <span id="version"></span>
             </h1>
         </div>
         <div class="modal-content">
-            <h3 class="colored">Username</h3>
-            <input id="username" class="colored" placeholder="Nickname ..." />
+            <div class="option">
+                <h3 class="colored">Username</h3>
+                <input id="username" class="colored" placeholder="Nickname ..." />
+            </div>
+            <div class="option">
+                <h3 class="colored">Image size</h3>
+                Selected sizes
+                <select id="image-size" class="colored">
+                    <option value="1">all (can be slow)</option>
+                    <option value="48">> 48x48</option>
+                    <option value="128">> 128x128</option>
+                    <option value="256">> 256x256</option>
+                    <option value="512">> 512x512</option>
+                </select>
+            </div>
             <h3 class="colored">Webhooks (<span id="webhooks-amount"></span>)</h3>
             <div id="webhooks-container">
                 <table id="webhooks-table">
@@ -34,7 +47,7 @@
             <a class="icon" href="https://discordapp.com/" target="_blank" title="Discord website">
                 <i class="fab fa-discord colored"></i>
             </a>
-            <a class="icon" href="https://github.com/Arcasias/Dank-share" target="_blank" title="GitHub repository">
+            <a class="icon" href="https://github.com/Arcasias/Dank-share" target="_blank" title="Source code">
                 <i class="fab fa-github colored"></i>
             </a>
         </div>

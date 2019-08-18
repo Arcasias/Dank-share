@@ -1,12 +1,18 @@
-chrome.storage.sync.get(['active'], function (result) {
+chrome.storage.sync.get(['storageSet', 'active'], function (result) {
 'use strict';
 
-// Activate by default
-if (![true, false].includes(result.active)) {
-    chrome.storage.sync.set({ active: true });
+// 'storageSet' is used to know whether the variables have been set
+// Active is true by default
+if (!result.storageSet || result.storageSet !== 'set') {
+    chrome.storage.sync.set({
+        active: true,
+        imageSize: 256,
+        storageSet: 'set',
+        username: "",
+        webhooks: [],
+    });
     result.active = true;
 }
-
 if (!result.active) {
     return;
 }
@@ -15,10 +21,8 @@ if (!result.active) {
  * CONSTANTS
  */
 const MAX_CACHE_SIZE = 1000
-const MIN_WIDTH = 256;
-const MIN_HEIGHT = 256;
-
 const img_cache = [];
+const yeetUrl = chrome.extension.getURL('images/yeet32.png');
 
 
 /**
@@ -36,14 +40,17 @@ function onImgLoad(img, callback) {
     }
 }
 
-function injectYeets(node) {
+function injectYeets(node, imageSize) {
     const imgs = node.tagName === 'IMG' ?
         [node] : node.getElementsByTagName ?
         [...node.getElementsByTagName('img')] : [];
     imgs.forEach(img => {
+        if (img.dataset.yeet) {
+            return;
+        }
         onImgLoad(img, () => {
             const rect = img.getBoundingClientRect();
-            if (rect.width > MIN_WIDTH && rect.height > MIN_HEIGHT
+            if (rect.width > imageSize && rect.height > imageSize
                 && !img_cache.find(cached => cached.img === img)) {
                 const yeet = new Yeet();
                 yeet.attachTo(img);
@@ -180,8 +187,9 @@ class Yeet {
 
         this.btnImg = document.createElement('img');
         this.btnImg.classList.add('dank-share-img')
-        this.btnImg.src = chrome.extension.getURL('images/yeet32.png');
-        this.btnImg.alt = "yeet";
+        this.btnImg.src = yeetUrl;
+        this.btnImg.dataset.yeet = true;
+        this.btnImg.yeet = true;
 
         this.btnTxt = document.createElement('div');
         this.btnTxt.classList.add('dank-share-txt');
@@ -221,7 +229,7 @@ class Yeet {
                 xhr.send(JSON.stringify(embedData));
                 sent ++;
             });
-            console.log(`%cImage sent to ${sent} webhook${sent.length > 1 ? 's' : ''}.`, `color: #${this.color.hex}`);
+            console.info(`%cImage sent to ${sent} webhook${sent.length > 1 ? 's' : ''}.`, `color: #${this.color.hex}`);
         });
     }
 
@@ -248,20 +256,24 @@ class Yeet {
 
 // Observer looking for new images to inject
 const observer = new MutationObserver((list, observer) => {
-    list.forEach(mutation => {
-        let nodes = [];
-        switch (mutation.type) {
-            case 'attributes':
-                nodes = [mutation.target];
-                break;
-            case 'childList':
-                if (!mutation.addedNodes.length) {
-                    return;
-                }
-                nodes = [...mutation.addedNodes];
-                break;
-        }
-        nodes.forEach(injectYeets);
+    chrome.storage.sync.get(['imageSize'], result => {
+        list.forEach(mutation => {
+            let nodes = [];
+            switch (mutation.type) {
+                case 'attributes':
+                    nodes = [mutation.target];
+                    break;
+                case 'childList':
+                    if (!mutation.addedNodes.length) {
+                        return;
+                    }
+                    nodes = [...mutation.addedNodes];
+                    break;
+            }
+            nodes.forEach(node => {
+                injectYeets(node, result.imageSize);
+            });
+        });
     });
 });
 observer.observe(document.body, {
@@ -272,6 +284,8 @@ observer.observe(document.body, {
 });
 
 // Initial injection
-injectYeets(document.body);
+chrome.storage.sync.get(['imageSize'], result => {
+    injectYeets(document.body, result.imageSize);
+});
 
 });
