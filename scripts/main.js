@@ -1,6 +1,12 @@
 chrome.storage.sync.get(['active'], function (result) {
 'use strict';
 
+// Activate by default
+if (![true, false].includes(result.active)) {
+    chrome.storage.sync.set({ active: true });
+    result.active = true;
+}
+
 if (!result.active) {
     return;
 }

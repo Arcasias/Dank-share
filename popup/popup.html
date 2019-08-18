@@ -25,24 +25,18 @@
                 </table>
                 <div id="webhooks-empty">You have no webhooks !</div>
             </div>
-            <button id="action-add" class="colored">Add <i class="fas fa-plus"></i></button>
+            <button id="action-add" class="colored" title="Add a new webhook">Add <i class="fas fa-plus"></i></button>
         </div>
         <div class="modal-footer">
-            <button class="icon" title="On/Off">
-                <a id="action-toggle" href="#">
-                    <i id="status" class="fas fa-circle"></i>
-                </a>
-            </button>
-            <button class="icon" title="Discord website">
-                <a href="https://discordapp.com/" target="_blank">
-                    <i class="fab fa-discord colored"></i>
-                </a>
-            </button>
-            <button class="icon" title="GitHub repository">
-                <a href="https://github.com/Arcasias/Dank-share" target="_blank">
-                    <i class="fab fa-github colored"></i>
-                </a>
-            </button>
+            <a id="action-toggle" class="icon" href="#" title="On/Off">
+                <i id="status" class="fas fa-circle"></i>
+            </a>
+            <a class="icon" href="https://discordapp.com/" target="_blank" title="Discord website">
+                <i class="fab fa-discord colored"></i>
+            </a>
+            <a class="icon" href="https://github.com/Arcasias/Dank-share" target="_blank" title="GitHub repository">
+                <i class="fab fa-github colored"></i>
+            </a>
         </div>
     </div>
     <script src="popup.js"></script>

@@ -164,10 +164,11 @@ i {
 }
 
 .icon {
-    padding: 15px 5px;
     flex: 1;
-    opacity: 1;
-    transition: 0.1s;
+    width: 100%;
+    padding: 12px;
+    text-align: center;
+    transition: background-color .15s;
 }
 
 .icon:hover {

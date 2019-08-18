@@ -281,14 +281,11 @@ chrome.storage.sync.get(['webhooks'], result => {
 });
 
 chrome.storage.sync.get(['active'], result => {
-    if (result.active) {
+    if ([true, false].includes(result.active)) {
         status = result.active;
         statusIcon.classList.toggle('on', status);
     } else {
-        chrome.storage.sync.set({ active: true }, () => {
-            status = true;
-            statusIcon.classList.toggle('on', true);
-        });
+        chrome.storage.sync.set({ active: true });
     }
 });
 
