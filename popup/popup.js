@@ -54,6 +54,12 @@ class Webhook {
     static get size() {
         return Webhook.list.length;
     }
+    static render() {
+        webhooksList.innerHTML = "";
+        this.list.forEach(webhook => {
+            webhooksList.append(webhook.element);
+        })
+    }
     static updateStyles(callback) {
         webhooksAmount.innerHTML = `${this.size}/${MAX_AMOUNT}`;
         webhooksTable.style.display = this.size === 0 ? 'none' : 'table';
@@ -73,6 +79,57 @@ class Webhook {
             if (!this.element.classList.contains('editing')) {
                 this.editButton.classList.add('grow');
             }
+        };
+        this.element.onmousedown = ev => {
+            if (this.element.classList.contains('editing') ||
+                ev.target.classList.contains('edit') ||
+                ev.target.classList.contains('cb-checkmark')) {
+                return;
+            }
+            ev.preventDefault();
+            ev.stopPropagation();
+            let coord = this.element.getBoundingClientRect();
+            const rowHeight = coord.height;
+            let rowPosition = Webhook.list.indexOf(this);
+            this.element.classList.add('dragging');
+            window.onmousemove = ev => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                if (Webhook.size <= 1) {
+                    return;
+                }
+                let newPosition;
+                if (ev.clientY < coord.y) {
+                    newPosition = Math.max(rowPosition - 1, 0);
+                } else if(ev.clientY > coord.y + coord.height) {
+                    newPosition = Math.min(rowPosition + 1, Webhook.size);
+                } else {
+                    return;
+                }
+                if (newPosition === rowPosition) {
+                    return;
+                }
+                Webhook.list.splice(rowPosition, 1);
+                Webhook.list.splice(newPosition, 0, this);
+                webhooksList.removeChild(this.element);
+                if (newPosition === Webhook.size - 1) {
+                    webhooksList.append(this.element);
+                } else {
+                    webhooksList.insertBefore(this.element, webhooksList.children[newPosition]);
+                }
+                rowPosition = newPosition;
+                coord = this.element.getBoundingClientRect();
+            };
+            window.onmouseup = ev => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                window.onmousemove = null;
+                window.onmouseup = null;
+                this.element.classList.remove('dragging');
+                chrome.storage.sync.set({ webhooks: Webhook.list }, () => {
+                    Webhook.updateStyles();
+                });
+            };
         };
 
         // Container table cells
@@ -187,7 +244,6 @@ class Webhook {
         this.element.append(input_td);
         this.element.append(controls_td);
         this.element.classList.toggle('inactive', !activeCheckbox.checked);
-        webhooksList.append(this.element);
 
         // Update list styles
         Webhook.list.push(this);
@@ -253,6 +309,7 @@ imageSizeSelect.onchange = ev => {
 actionAdd.onclick = ev => {
     new Webhook("", true, "", true);
     chrome.storage.sync.set({ webhooks: Webhook.list });
+    Webhook.render();
     Webhook.updateStyles();
 };
 
@@ -271,6 +328,7 @@ chrome.storage.sync.get(['active', 'imageSize', 'username', 'webhooks'], result 
         const { active, alias, url } = webhook;
         new Webhook(url, active, alias);
     });
+    Webhook.render();
     if (!result.webhooks.length) {
         Webhook.updateStyles();
     }

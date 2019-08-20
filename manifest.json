@@ -1,6 +1,6 @@
 {
     "name": "Dank share",
-    "version": "1.5",
+    "version": "1.6",
     "description": "Share dank images",
     "permissions": ["activeTab", "declarativeContent", "storage", "tabs"],
     "background": {

@@ -235,6 +235,15 @@ i {
     border-radius: 3px;
 }
 
+tr.dragging {
+    box-shadow: 0 0 3px 0 gray;
+    cursor: grabbing !important;
+}
+
+tr:not(.editing) {
+    cursor: grab;
+}
+
 tr:not(.editing) .webhook {
     display: none;
 }
