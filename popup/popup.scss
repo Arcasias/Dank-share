@@ -1,0 +1,210 @@
+$color-background: #ffffff;
+$color-border: #cacaca;
+$color-focus: #f0f0f0;
+$color-success: #00c800;
+$color-danger: #c80000;
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Calibri';
+    font-size: 14px;
+    min-width: 265px;
+}
+
+button {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    outline: none;
+}
+
+input {
+    border: none;
+    display: block;
+}
+
+h1, h2, h3, h4, h5 {
+    margin: 0;
+    font-family: 'Helvetica';
+}
+
+h1 {
+    font-size: 22px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+.header {
+    padding: 10px 20px;
+    border-bottom: 1px solid $color-border;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
+    align-items: center;
+}
+.content {
+    padding: 10px 20px;
+    border-bottom: 1px solid $color-border;
+    .section {
+        margin-bottom: 20px;
+        .section-title {
+            margin-bottom: 10px;
+        }
+    }
+    .section:last-child {
+        margin: 0;
+    }
+}
+.footer {
+    width: 100%;
+    display: flex;
+    .icon {
+        flex: 1;
+        width: 100%;
+        padding: 12px;
+        text-align: center;
+        transition: background-color .15s;
+        &:hover {
+            background-color: $color-focus;
+        }
+        i {
+            font-size: 24px;
+        }
+    }
+}
+
+.input {
+    display: block;
+    background-color: transparent;
+    outline: none;
+    padding: 3px 0;
+    border: none;
+    border-bottom: 1px solid transparent;
+    &:focus {
+        border-bottom: 1px solid;
+    }
+    &::placeholder {
+        color: $color-border;
+    }
+}
+.cb-container {
+    display: block;
+    position: relative;
+    padding-left: 20px;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 14px;
+    .cb-checkmark {
+        position: absolute;
+        left: 3px;
+        top: -6px;
+        height: 12px;
+        width: 12px;
+        border-radius: 12px;
+        background-color: $color-border;
+        transition: background-color .15s;
+    }
+    .webhook-active {
+        position: absolute;
+        opacity: 0;
+        left: 0;
+        top: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+    &:hover .webhook-active ~ .cb-checkmark {
+        background-color: $color-focus;
+    }
+    .webhook-active:checked ~ .cb-checkmark {
+        background-color: $color-success;
+    }
+}
+
+.webhook {
+    cursor: grab;
+    .td-controls {
+        display: flex;
+        flex-direction: column;
+    }
+    &.editing {
+        background-color: $color-focus;
+        border-radius: 3px;
+        .read-only {
+            display: none;
+        }
+    }
+    &:not(.editing) {
+        .input {
+            pointer-events:none;
+        }
+        .edit-only {
+            display: none;
+        }
+    }
+    &.inactive {
+        opacity: 0.4;
+        color: black !important;
+    }
+    &.dragging {
+        box-shadow: 0 0 3px 0 gray;
+        cursor: grabbing;
+    }
+    .btn {
+        width: 16px;
+        padding: 5px;
+        padding-left: 0;
+        cursor: pointer;
+        transition: opacity .2s;
+        &.webhook-edit i.fa-save {
+            color: #00c800;
+        }
+        &.webhook-remove i.fa-trash-alt {
+            color: #c80000;
+        }
+    }
+}
+
+.template {
+    display: none;
+}
+
+#img-logo {
+    width: 28px;
+    cursor: pointer;
+}
+
+#label-version {
+    color: #444;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+#input-username {
+    background-color: $color-focus;
+    padding: 3px;
+    width: calc(100% - 6px);
+}
+
+#label-empty {
+    font-style: italic;
+    color: #acacac;
+}
+
+#button-add {
+    padding: 4px 6px;
+    margin-top: 10px;
+    border-radius: 3px;
+    border: 2px solid;
+    font-weight: bold;
+}
+
+#button-status {
+    color: #cacaca;
+    &.on {
+        color: #00c800;
+    }
+}

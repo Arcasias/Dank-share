@@ -6,7 +6,6 @@ chrome.storage.sync.get(['storageSet', 'active'], function (result) {
 if (!result.storageSet || result.storageSet !== 'set') {
     chrome.storage.sync.set({
         active: true,
-        imageSize: 256,
         storageSet: 'set',
         username: "",
         webhooks: [],
@@ -28,6 +27,12 @@ const yeetUrl = chrome.extension.getURL('images/yeet32.png');
 /**
  * HELPERS
  */
+function checkImageSize(width, height) {
+    return width * height >= 32000
+        && width > 48
+        && height > 48;
+}
+
 function randIndex(array) {
     return Math.floor(Math.random() * array.length);
 }
@@ -40,17 +45,14 @@ function onImgLoad(img, callback) {
     }
 }
 
-function injectYeets(node, imageSize) {
+function injectYeets(node) {
     const imgs = node.tagName === 'IMG' ?
         [node] : node.getElementsByTagName ?
         [...node.getElementsByTagName('img')] : [];
     imgs.forEach(img => {
-        if (img.dataset.yeet) {
-            return;
-        }
         onImgLoad(img, () => {
             const rect = img.getBoundingClientRect();
-            if (rect.width > imageSize && rect.height > imageSize
+            if (checkImageSize(rect.width, rect.height)
                 && !img_cache.find(cached => cached.img === img)) {
                 const yeet = new Yeet();
                 yeet.attachTo(img);
@@ -256,23 +258,21 @@ class Yeet {
 
 // Observer looking for new images to inject
 const observer = new MutationObserver((list, observer) => {
-    chrome.storage.sync.get(['imageSize'], result => {
-        list.forEach(mutation => {
-            let nodes = [];
-            switch (mutation.type) {
-                case 'attributes':
-                    nodes = [mutation.target];
-                    break;
-                case 'childList':
-                    if (!mutation.addedNodes.length) {
-                        return;
-                    }
-                    nodes = [...mutation.addedNodes];
-                    break;
-            }
-            nodes.forEach(node => {
-                injectYeets(node, result.imageSize);
-            });
+    list.forEach(mutation => {
+        let nodes = [];
+        switch (mutation.type) {
+            case 'attributes':
+                nodes = [mutation.target];
+                break;
+            case 'childList':
+                if (!mutation.addedNodes.length) {
+                    return;
+                }
+                nodes = [...mutation.addedNodes];
+                break;
+        }
+        nodes.forEach(node => {
+            injectYeets(node);
         });
     });
 });
@@ -284,8 +284,6 @@ observer.observe(document.body, {
 });
 
 // Initial injection
-chrome.storage.sync.get(['imageSize'], result => {
-    injectYeets(document.body, result.imageSize);
-});
+injectYeets(document.body);
 
 });

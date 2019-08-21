@@ -1,38 +1,38 @@
-let color = [255, 0, 0];
-let colorPtr = 2;
-let colorMult = 1;
+'use strict';
 
-const MAX_AMOUNT = 10;
-const INPUT_MAXLENGTH = 32;
+// VARIABLES
+const MAX_COUNT = 10;
+const INPUT_MAX_LENGTH = 32;
 
 const manifest = chrome.runtime.getManifest();
 
-const statusIcon =          document.getElementById('status');
-const versionNumber =       document.getElementById('version');
-const logo =                document.getElementById('logo');
-const usernameInput =       document.getElementById('username');
-const imageSizeSelect =     document.getElementById('image-size');
-const webhooksList =        document.getElementById('webhooks-list');
-const webhooksTable =       document.getElementById('webhooks-table');
-const webhooksEmpty =       document.getElementById('webhooks-empty');
-const webhooksAmount =      document.getElementById('webhooks-amount');
+const buttonAdd = document.getElementById('button-add');
+const buttonStatus = document.getElementById('button-status');
+const imgLogo = document.getElementById('img-logo');
+const inputUsername = document.getElementById('input-username');
+const labelCount = document.getElementById('label-count');
+const labelEmpty = document.getElementById('label-empty');
+const labelVersion = document.getElementById('label-version');
+const tableWebhooks = document.getElementById('table-webhooks').getElementsByTagName('tbody')[0];
+const templateWebhook = document.getElementById('template-webhook');
 
-const actionAdd =           document.getElementById('action-add');
-const actionToggle =        document.getElementById('action-toggle');
+let active = false;
+let color = [255, 0, 0];
+let colorPtr = 2;
+let colorMult = 1;
+let rgbActive = true;
+let status = true;
 
-let status = false;
-let dank = true;
-
+// HELPERS
 function animate() {
-    if (dank) {
+    if (rgbActive) {
         color[colorPtr % 3] = Math.max(Math.min(color[colorPtr % 3] + 1 * colorMult, 255), 0);
         if ((colorMult > 0 && color[colorPtr % 3] == 255) ||
             (colorMult < 0 && color[colorPtr % 3] == 0)) {
             colorPtr ++;
             colorMult *= -1;
         }
-
-        let hexColor = '#' + color.map(color => color.toString(16).padStart(2, '0')).join('');
+        const hexColor = '#' + color.map(color => color.toString(16).padStart(2, '0')).join('');
         [...document.getElementsByClassName('colored')].forEach(el => {
             el.style.color = hexColor;
             el.style.outlineColor = hexColor;
@@ -41,254 +41,225 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-function nameLimiter(ev) {
-    const input = ev.target;
-    if (input.value.length > INPUT_MAXLENGTH) {
-        input.value = input.value.slice(0, 32);
-    }
+function storageGet(...keys) {
+    return new Promise((resolve, reject) => {
+        chrome.storage.sync.get(keys, resolve);
+    });
 }
 
+function storageSet(data) {
+    return new Promise((resolve, reject) => {
+        chrome.storage.sync.set(data, resolve);
+    });
+}
+
+// CLASSES
 class Webhook {
 
     static list = [];
-    static get size() {
+    static get count() {
         return Webhook.list.length;
     }
-    static render() {
-        webhooksList.innerHTML = "";
-        this.list.forEach(webhook => {
-            webhooksList.append(webhook.element);
-        })
-    }
     static updateStyles(callback) {
-        webhooksAmount.innerHTML = `${this.size}/${MAX_AMOUNT}`;
-        webhooksTable.style.display = this.size === 0 ? 'none' : 'table';
-        webhooksEmpty.style.display = this.size === 0 ? 'block' : 'none';
-        actionAdd.style.display = this.size < MAX_AMOUNT ? 'block' : 'none';
+        labelCount.innerHTML = `${Webhook.count}/${MAX_COUNT}`;
+        tableWebhooks.style.display = Webhook.count === 0 ? 'none' : 'table';
+        labelEmpty.style.display = Webhook.count === 0 ? 'block' : 'none';
+        buttonAdd.style.display = Webhook.count < MAX_COUNT ? 'block' : 'none';
     }
 
-    constructor(url, active, alias, edit=false) {
-        this.active = active;        
-        this.alias = alias;        
+    constructor(active, alias, url, edit=false) {
+        this.active = active;
+        this.alias = alias;
         this.url = url;
+        this.editing = edit;
 
-        // Container row
-        this.element = document.createElement('tr');
-        this.element.classList.toggle('editing', edit);
-        this.element.onclick = ev => {
-            if (!this.element.classList.contains('editing')) {
-                this.editButton.classList.add('grow');
-            }
-        };
-        this.element.onmousedown = ev => {
-            if (this.element.classList.contains('editing') ||
-                ev.target.classList.contains('edit') ||
-                ev.target.classList.contains('cb-checkmark')) {
-                return;
-            }
-            ev.preventDefault();
-            ev.stopPropagation();
-            let coord = this.element.getBoundingClientRect();
-            const rowHeight = coord.height;
-            let rowPosition = Webhook.list.indexOf(this);
-            this.element.classList.add('dragging');
-            window.onmousemove = ev => {
-                ev.preventDefault();
-                ev.stopPropagation();
-                if (Webhook.size <= 1) {
-                    return;
-                }
-                let newPosition;
-                if (ev.clientY < coord.y) {
-                    newPosition = Math.max(rowPosition - 1, 0);
-                } else if(ev.clientY > coord.y + coord.height) {
-                    newPosition = Math.min(rowPosition + 1, Webhook.size);
-                } else {
-                    return;
-                }
-                if (newPosition === rowPosition) {
-                    return;
-                }
-                Webhook.list.splice(rowPosition, 1);
-                Webhook.list.splice(newPosition, 0, this);
-                webhooksList.removeChild(this.element);
-                if (newPosition === Webhook.size - 1) {
-                    webhooksList.append(this.element);
-                } else {
-                    webhooksList.insertBefore(this.element, webhooksList.children[newPosition]);
-                }
-                rowPosition = newPosition;
-                coord = this.element.getBoundingClientRect();
-            };
-            window.onmouseup = ev => {
-                ev.preventDefault();
-                ev.stopPropagation();
-                window.onmousemove = null;
-                window.onmouseup = null;
-                this.element.classList.remove('dragging');
-                chrome.storage.sync.set({ webhooks: Webhook.list }, () => {
-                    Webhook.updateStyles();
-                });
-            };
-        };
+        // Initialize main component
+        this.element = templateWebhook.cloneNode(true);
+        this.element.id = null;
+        this.element.classList.remove('template');
+        if (!this.active) {
+            this.element.classList.add('inactive');
+        }
 
-        // Container table cells
-        const active_td = document.createElement('td');
-        active_td.classList.add('active-td');
-        const input_td = document.createElement('td');
-        input_td.classList.add('input-td');
-        const controls_td = document.createElement('td');
-        controls_td.classList.add('controls-td');
+        // Initialize sub components
+        this.components = new Map();
+        this.components.set('active', this.find('webhook-active'));
+        this.components.set('alias', this.find('webhook-alias'));
+        this.components.set('url', this.find('webhook-url'));
+        this.components.set('edit', this.find('webhook-edit'));
+        this.components.set('remove', this.find('webhook-remove'));
 
-        // Activate checkbox
-        const checkboxContainer = document.createElement('label');
-        checkboxContainer.classList = 'cb-container';
+        // Set values
+        this.components.get('active').checked = this.active;
+        this.components.get('alias').value = this.alias;
+        this.components.get('url').value = this.url;
 
-        const checkmark = document.createElement('span');
-        checkmark.classList = 'cb-checkmark';
+        // Bind event listeners
+        this.element.onmousedown = this.onRowMousedown.bind(this);
+        this.components.get('active').onchange = this.onActiveChange.bind(this);
+        this.components.get('alias').onchange = this.onAliasChange.bind(this);
+        this.components.get('alias').onkeydown = this.onAliasKeydown.bind(this);
+        this.components.get('url').onchange = this.onUrlChange.bind(this);
+        this.components.get('url').onkeydown = this.onUrlKeydown.bind(this);
+        this.components.get('edit').onclick = this.onEditClick.bind(this);
+        this.components.get('remove').onclick = this.onRemoveClick.bind(this);
 
-        const activeCheckbox = document.createElement('input');
-        activeCheckbox.classList = 'activate';
-        activeCheckbox.type = 'checkbox';
-        activeCheckbox.checked = active;
-        activeCheckbox.onchange = ev => {
-            this.active = activeCheckbox.checked;
-            this.element.classList.toggle('inactive', !this.active);
-            chrome.storage.sync.set({ webhooks: Webhook.list }, () => {
-                Webhook.updateStyles();
-            });
-        };
-
-        // Alias input
-        const aliasInput = document.createElement('input');
-        aliasInput.classList = 'colored alias';
-        aliasInput.value = alias || "";
-        aliasInput.placeholder = "Alias";
-        aliasInput.onchange = ev => {
-            this.alias = aliasInput.value;
-            chrome.storage.sync.set({ webhooks: Webhook.list }, () => {
-                Webhook.updateStyles();
-            });
-        };
-        aliasInput.oninput = nameLimiter;
-        aliasInput.onkeydown = ev => {
-            switch (ev.key) {
-                case 'Enter':
-                    urlInput.focus();
-                    break;
-                case 'Escape':
-                    ev.preventDefault();
-                    document.activeElement.blur();
-                    this.stopEdit();
-                    break;
-                default:
-                    break;
-            }
-        };
-
-        // Main input
-        const urlInput = document.createElement('input');
-        urlInput.classList = 'colored webhook';
-        urlInput.value = url || "";
-        urlInput.placeholder = "URL";
-        urlInput.onchange = ev => {
-            this.url = urlInput.value;
-            chrome.storage.sync.set({ webhooks: Webhook.list }, () => {
-                Webhook.updateStyles();
-            });
-        };
-        urlInput.onkeydown = ev => {
-            switch (ev.key) {
-                case 'Enter':
-                    document.activeElement.blur();
-                    this.stopEdit();
-                    break;
-                case 'Escape':
-                    ev.preventDefault();
-                    document.activeElement.blur();
-                    this.stopEdit();
-                    break;
-                default:
-                    break;
-            }
-        };
-
-        // Edit button
-        this.editButton = document.createElement('i');
-        this.editButton.title = "Edit";
-        this.editButton.onclick = ev => {
-            this.editButton.style.color = null;
-            this.element.classList.contains('editing') ?
-                this.stopEdit() :
-                this.startEdit();
-        };
-        edit ? this.startEdit() : this.stopEdit();
-
-        // Remove button
-        const removeButton = document.createElement('i');
-        removeButton.title = "Delete webhook";
-        removeButton.classList = 'fas fa-times remove';
-        removeButton.onclick = ev => {
-            this.remove();
-        };
-
-        // Attach everything together
-        checkboxContainer.append(activeCheckbox);
-        checkboxContainer.append(checkmark);
-        active_td.append(checkboxContainer);
-        input_td.append(aliasInput);
-        input_td.append(urlInput);
-        controls_td.append(this.editButton);
-        controls_td.append(removeButton);
-        this.element.append(active_td);
-        this.element.append(input_td);
-        this.element.append(controls_td);
-        this.element.classList.toggle('inactive', !activeCheckbox.checked);
+        if (this.editing) {
+            this.startEdit();   
+        }
 
         // Update list styles
         Webhook.list.push(this);
         Webhook.updateStyles();
     }
 
+    destroy() {
+        this.element.parentNode.removeChild(this.element);
+        Webhook.list.splice(Webhook.list.indexOf(this), 1);
+        storageSet({ webhooks: Webhook.list }).then(Webhook.updateStyles);
+    }
+
+    find(className) {
+        return this.element.getElementsByClassName(className)[0];
+    }
+
     startEdit() {
         Webhook.list.forEach(webhook => {
-            webhook.stopEdit();
-        })
+            if (webhook.editing) {
+                webhook.stopEdit();
+            }
+        });
+        this.editing = true;
         this.element.classList.add('editing');
-        this.editButton.classList = 'fas fa-check edit';
     }
 
     stopEdit() {
+        this.editing = false;
         this.element.classList.remove('editing');
-        this.editButton.classList = 'fas fa-pen edit colored';
     }
 
-    remove() {
-        this.element.parentNode.removeChild(this.element);
-        Webhook.list.splice(Webhook.list.indexOf(this), 1);
-        chrome.storage.sync.set({ webhooks: Webhook.list });
-        Webhook.updateStyles();
+    // Event handlers
+    onRowMousedown(ev) {
+        console.log(ev);
+        if (this.editing || !ev.target.classList.contains('td-inputs')) {
+            return;
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+        let coord = this.element.getBoundingClientRect();
+        const rowHeight = coord.height;
+        let rowPosition = Webhook.list.indexOf(this);
+        this.element.classList.add('dragging');
+        window.onmousemove = ev => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (Webhook.count <= 1) {
+                return;
+            }
+            let newPosition;
+            if (ev.clientY < coord.y) {
+                newPosition = Math.max(rowPosition - 1, 0);
+            } else if(ev.clientY > coord.y + coord.height) {
+                newPosition = Math.min(rowPosition + 1, Webhook.count);
+            } else {
+                return;
+            }
+            if (newPosition === rowPosition) {
+                return;
+            }
+            Webhook.list.splice(rowPosition, 1);
+            Webhook.list.splice(newPosition, 0, this);
+            tableWebhooks.removeChild(this.element);
+            if (newPosition === Webhook.count - 1) {
+                tableWebhooks.append(this.element);
+            } else {
+                tableWebhooks.insertBefore(this.element, tableWebhooks.children[newPosition]);
+            }
+            rowPosition = newPosition;
+            coord = this.element.getBoundingClientRect();
+        };
+        window.onmouseup = ev => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            window.onmousemove = null;
+            window.onmouseup = null;
+            this.element.classList.remove('dragging');
+            storageSet({ webhooks: Webhook.list }).then(Webhook.updateStyles);
+        };
+    }
+
+    onActiveChange(ev) {
+        this.active = this.components.get('active').checked;
+        this.element.classList.toggle('inactive', !this.active);
+        storageSet({ webhooks: Webhook.list }).then(Webhook.updateStyles);
+    }
+
+    onAliasChange(ev) {
+        this.alias = this.components.get('alias').value;
+        storageSet({ webhooks: Webhook.list }).then(Webhook.updateStyles);
+    }
+
+    onAliasKeydown(ev) {
+        switch (ev.key) {
+            case 'Enter':
+                this.components.get('url').focus();
+                break;
+            case 'Escape':
+                ev.preventDefault();
+                document.activeElement.blur();
+                this.stopEdit();
+                break;
+        }
+    }
+
+    onUrlChange(ev) {
+        this.url = this.components.get('url').value;
+        storageSet({ webhooks: Webhook.list }).then(Webhook.updateStyles)
+    }
+
+    onUrlKeydown(ev) {
+        switch (ev.key) {
+            case 'Enter':
+                document.activeElement.blur();
+                this.stopEdit();
+                break;
+            case 'Escape':
+                ev.preventDefault();
+                document.activeElement.blur();
+                this.stopEdit();
+                break;
+            default:
+                break;
+        }
+    }
+
+    onEditClick(ev) {
+        this.components.get('edit').style.color = null;
+        this.editing ? this.stopEdit() : this.startEdit();
+    }
+
+    onRemoveClick(ev) {
+        this.destroy();
     }
 }
 
-logo.src = chrome.extension.getURL('images/yeet32.png');
-versionNumber.innerHTML = `v${manifest.version}`;
+imgLogo.src = chrome.extension.getURL('images/yeet32.png');
+labelVersion.innerHTML = `v${manifest.version}`;
 
 // Event listeners
-logo.onclick = ev => {
-    dank = !dank;
-    if (!dank) {
+imgLogo.onclick = ev => {
+    rgbActive = !rgbActive;
+    if (!rgbActive) {
         [...document.getElementsByClassName('colored')].forEach(el => {
             el.style.color = null;
         });
     }
 };
 
-usernameInput.onchange = ev => {
-    chrome.storage.sync.set({ username: usernameInput.value });
+inputUsername.onchange = ev => {
+    storageSet({ username: inputUsername.value });
 };
-usernameInput.oninput = nameLimiter;
-usernameInput.onkeydown = ev => {
+inputUsername.onkeydown = ev => {
     switch (ev.key) {
         case 'Enter':
             document.activeElement.blur();
@@ -297,42 +268,38 @@ usernameInput.onkeydown = ev => {
             ev.preventDefault();
             document.activeElement.blur();
             break;
-        default:
-            break;
     }
 };
 
-imageSizeSelect.onchange = ev => {
-    chrome.storage.sync.set({ imageSize: parseInt(imageSizeSelect.value) });
+buttonAdd.onclick = ev => {
+    const newWebhook = new Webhook(true, "", "", true);
+    tableWebhooks.append(newWebhook.element);
+    storageSet({ webhooks: Webhook.list }).then(Webhook.updateStyles);
 };
 
-actionAdd.onclick = ev => {
-    new Webhook("", true, "", true);
-    chrome.storage.sync.set({ webhooks: Webhook.list });
-    Webhook.render();
-    Webhook.updateStyles();
-};
-
-actionToggle.onclick = ev => {
-    chrome.storage.sync.set({ active: !status }, () => {
+buttonStatus.onclick = ev => {
+    storageSet({ active: !status }).then(() => {
         status = !status;
-        statusIcon.classList.toggle('on', status);
+        buttonStatus.classList.toggle('on', status);
     });
 };
 
-chrome.storage.sync.get(['active', 'imageSize', 'username', 'webhooks'], result => {
+storageGet('active', 'imageSize', 'username', 'webhooks').then(result => {
     status = result.active;
-    usernameInput.value = result.username;
-    imageSizeSelect.value = result.imageSize;
+    inputUsername.value = result.username;
     result.webhooks.forEach(webhook => {
         const { active, alias, url } = webhook;
-        new Webhook(url, active, alias);
+        new Webhook(active, alias, url);
     });
-    Webhook.render();
     if (!result.webhooks.length) {
         Webhook.updateStyles();
+    } else {
+        Webhook.list.forEach(webhook => {
+            tableWebhooks.append(webhook.element);
+        });
     }
-    statusIcon.classList.toggle('on', status);
+    buttonStatus.classList.toggle('on', status);
 });
 
 animate();
+window.Webhook = Webhook;
