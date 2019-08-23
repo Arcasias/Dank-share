@@ -1,6 +1,8 @@
 'use strict';
 
-// VARIABLES
+/**
+ * VARIABLES
+ */
 const MAX_COUNT = 10;
 const INPUT_MAX_LENGTH = 32;
 
@@ -23,7 +25,14 @@ let colorMult = 1;
 let rgbActive = true;
 let status = true;
 
-// HELPERS
+
+/**
+ * HELPERS
+ */
+
+/**
+ * Called on each frame. Handles the color changing feature.
+ */
 function animate() {
     if (rgbActive) {
         color[colorPtr % 3] = Math.max(Math.min(color[colorPtr % 3] + 1 * colorMult, 255), 0);
@@ -41,32 +50,58 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
+/**
+ * Abreviation + promisification of the `chrome.storage.sync.get` function.
+ * 
+ * @param  {...String[]} keys
+ * @return {Promise}
+ */
 function storageGet(...keys) {
     return new Promise((resolve, reject) => {
         chrome.storage.sync.get(keys, resolve);
     });
 }
 
+/**
+ * Abreviation + promisification of the `chrome.storage.sync.set` function.
+ * 
+ * @param  {data} keys
+ * @return {Promise}
+ */
 function storageSet(data) {
     return new Promise((resolve, reject) => {
         chrome.storage.sync.set(data, resolve);
     });
 }
 
-// CLASSES
+
+/**
+ * CLASSES
+ */
 class Webhook {
 
+    // Contains all webhooks
     static list = [];
-    static get count() {
-        return Webhook.list.length;
-    }
-    static updateStyles(callback) {
-        labelCount.innerHTML = `${Webhook.count}/${MAX_COUNT}`;
-        tableWebhooks.style.display = Webhook.count === 0 ? 'none' : 'table';
-        labelEmpty.style.display = Webhook.count === 0 ? 'block' : 'none';
-        buttonAdd.style.display = Webhook.count < MAX_COUNT ? 'block' : 'none';
+    
+    /**
+     * Updates the adequate styles based on the list state.
+     */
+    static updateStyles() {
+        labelCount.innerHTML = `${Webhook.list.length}/${MAX_COUNT}`;
+        tableWebhooks.style.display = Webhook.list.length === 0 ? 'none' : 'table';
+        labelEmpty.style.display = Webhook.list.length === 0 ? 'block' : 'none';
+        buttonAdd.style.display = Webhook.list.length < MAX_COUNT ? 'block' : 'none';
     }
 
+    /**
+     * Represents a webhook (both the element and the logical object).
+     *
+     * @constructor
+     * @param  {Boolean} active Whether the webhook should be targeted by image sharing
+     * @param  {String}  alias  Local name of the webhook
+     * @param  {String}  url    Image dispatching address
+     * @param  {Boolean} edit   Whether the webhook should be editable on init
+     */
     constructor(active, alias, url, edit=false) {
         this.active = active;
         this.alias = alias;
@@ -113,16 +148,28 @@ class Webhook {
         Webhook.updateStyles();
     }
 
+    /**
+     * Removes the webhook both from the DOM and from the list.
+     */
     destroy() {
         this.element.parentNode.removeChild(this.element);
         Webhook.list.splice(Webhook.list.indexOf(this), 1);
         storageSet({ webhooks: Webhook.list }).then(Webhook.updateStyles);
     }
 
+    /**
+     * Helper function getting the first child element matching a class name.
+     * 
+     * @param  {String} className
+     * @return {HTMLElement}
+     */
     find(className) {
         return this.element.getElementsByClassName(className)[0];
     }
 
+    /**
+     * Allows the webhook to be edited.
+     */
     startEdit() {
         Webhook.list.forEach(webhook => {
             if (webhook.editing) {
@@ -133,12 +180,20 @@ class Webhook {
         this.element.classList.add('editing');
     }
 
+    /**
+     * Stops webhook edition.
+     */
     stopEdit() {
         this.editing = false;
         this.element.classList.remove('editing');
     }
 
     // Event handlers
+    /**
+     * Drag & drop feature, allowing to re-order webhooks.
+     * 
+     * @param  {Event} ev
+     */
     onRowMousedown(ev) {
         console.log(ev);
         if (this.editing || !ev.target.classList.contains('td-inputs')) {
@@ -153,14 +208,14 @@ class Webhook {
         window.onmousemove = ev => {
             ev.preventDefault();
             ev.stopPropagation();
-            if (Webhook.count <= 1) {
+            if (Webhook.list.length <= 1) {
                 return;
             }
             let newPosition;
             if (ev.clientY < coord.y) {
                 newPosition = Math.max(rowPosition - 1, 0);
             } else if(ev.clientY > coord.y + coord.height) {
-                newPosition = Math.min(rowPosition + 1, Webhook.count);
+                newPosition = Math.min(rowPosition + 1, Webhook.list.length);
             } else {
                 return;
             }
@@ -170,7 +225,7 @@ class Webhook {
             Webhook.list.splice(rowPosition, 1);
             Webhook.list.splice(newPosition, 0, this);
             tableWebhooks.removeChild(this.element);
-            if (newPosition === Webhook.count - 1) {
+            if (newPosition === Webhook.list.length - 1) {
                 tableWebhooks.append(this.element);
             } else {
                 tableWebhooks.insertBefore(this.element, tableWebhooks.children[newPosition]);
@@ -188,17 +243,33 @@ class Webhook {
         };
     }
 
+    /**
+     * Updates the `active` property.
+     * ` 
+     * @param  {Event} ev
+     */
     onActiveChange(ev) {
         this.active = this.components.get('active').checked;
         this.element.classList.toggle('inactive', !this.active);
         storageSet({ webhooks: Webhook.list }).then(Webhook.updateStyles);
     }
 
+    /**
+     * Updates the `alias` property.
+     * ` 
+     * @param  {Event} ev
+     */
     onAliasChange(ev) {
         this.alias = this.components.get('alias').value;
         storageSet({ webhooks: Webhook.list }).then(Webhook.updateStyles);
     }
 
+    /**
+     * Navigates to the `url` field when pressing ENTER and leaves the cell
+     * when pressing ESCAPE.
+     * ` 
+     * @param  {Event} ev
+     */
     onAliasKeydown(ev) {
         switch (ev.key) {
             case 'Enter':
@@ -212,11 +283,21 @@ class Webhook {
         }
     }
 
+    /**
+     * Updates the `url` property.
+     * ` 
+     * @param  {Event} ev
+     */
     onUrlChange(ev) {
         this.url = this.components.get('url').value;
-        storageSet({ webhooks: Webhook.list }).then(Webhook.updateStyles)
+        storageSet({ webhooks: Webhook.list }).then(Webhook.updateStyles);
     }
 
+    /**
+     * End edition when pressing either ENTER or ESCAPE.
+     * ` 
+     * @param  {Event} ev
+     */
     onUrlKeydown(ev) {
         switch (ev.key) {
             case 'Enter':
@@ -233,20 +314,36 @@ class Webhook {
         }
     }
 
+    /**
+     * Toggles edit mode.
+     * 
+     * @param  {Event} ev
+     */
     onEditClick(ev) {
         this.components.get('edit').style.color = null;
         this.editing ? this.stopEdit() : this.startEdit();
     }
 
+    /**
+     * Deletes the webhook.
+     * 
+     * @param  {Event} ev
+     */
     onRemoveClick(ev) {
         this.destroy();
     }
 }
 
-imgLogo.src = chrome.extension.getURL('images/yeet32.png');
-labelVersion.innerHTML = `v${manifest.version}`;
 
-// Event listeners
+/**
+ * EVENT LISTENERS
+ */
+
+/**
+ * Toggles color changing feature.
+ * 
+ * @param  {Event} ev
+ */
 imgLogo.onclick = ev => {
     rgbActive = !rgbActive;
     if (!rgbActive) {
@@ -256,9 +353,20 @@ imgLogo.onclick = ev => {
     }
 };
 
+/**
+ * Saves the `username` field.
+ * 
+ * @param  {Event} ev
+ */
 inputUsername.onchange = ev => {
     storageSet({ username: inputUsername.value });
 };
+
+/**
+ * Exits the `username` edition when presing ENTER or ESCAPE.
+ * 
+ * @param  {Event} ev
+ */
 inputUsername.onkeydown = ev => {
     switch (ev.key) {
         case 'Enter':
@@ -271,12 +379,22 @@ inputUsername.onkeydown = ev => {
     }
 };
 
+/**
+ * Creates a new webhook in the list.
+ * 
+ * @param  {Event} ev
+ */
 buttonAdd.onclick = ev => {
     const newWebhook = new Webhook(true, "", "", true);
     tableWebhooks.append(newWebhook.element);
     storageSet({ webhooks: Webhook.list }).then(Webhook.updateStyles);
 };
 
+/**
+ * Toggles the global state of the extension.
+ * 
+ * @param  {Event} ev
+ */
 buttonStatus.onclick = ev => {
     storageSet({ active: !status }).then(() => {
         status = !status;
@@ -284,6 +402,18 @@ buttonStatus.onclick = ev => {
     });
 };
 
+
+/**
+ * MAIN
+ */
+
+/**
+ * The main code is executed here to get all the required variables.
+ * The steps are :
+ * 1) Set both the `active` and `username` global values
+ * 2) Fill the webhooks list with webhooks fetched from storage
+ * 3) Sets the correct image and version number in the header
+ */
 storageGet('active', 'imageSize', 'username', 'webhooks').then(result => {
     status = result.active;
     inputUsername.value = result.username;
@@ -299,7 +429,9 @@ storageGet('active', 'imageSize', 'username', 'webhooks').then(result => {
         });
     }
     buttonStatus.classList.toggle('on', status);
+    imgLogo.src = chrome.extension.getURL('images/yeet32.png');
+    labelVersion.innerHTML = `v${manifest.version}`;
 });
 
+// Starts animation as soon as the code is finished.
 animate();
-window.Webhook = Webhook;

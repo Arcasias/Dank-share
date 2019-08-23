@@ -7,6 +7,7 @@
     opacity: 0.5 !important;
     outline: 0 !important;
     position: absolute !important;
+    transform: none !important;
     transition: .15s !important;
     width: 24px !important;
     z-index: 9999 !important;
@@ -45,6 +46,7 @@
     position: absolute !important;
     right: 12px !important;
     text-align: left !important;
+    text-transform: none !important;
     top: 0 !important;
     transition: .15s !important;
     width: 0 !important;

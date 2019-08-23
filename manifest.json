@@ -1,7 +1,7 @@
 {
-    "name": "Dank share",
-    "version": "1.7",
-    "description": "Share dank images",
+    "name": "Dank Share",
+    "version": "1.8",
+    "description": "Share your dankest images in one click",
     "permissions": ["activeTab", "declarativeContent", "storage", "tabs"],
     "background": {
         "scripts": ["scripts/background.js"],
