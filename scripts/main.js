@@ -1,18 +1,8 @@
-chrome.storage.sync.get(['storageSet', 'active'], function (result) {
+chrome.storage.sync.get(['status'], function (result) {
 'use strict';
 
-// 'storageSet' is used to know whether the variables have been set
-// Active is true by default
-if (!result.storageSet || result.storageSet !== 'set') {
-    chrome.storage.sync.set({
-        active: true,
-        storageSet: 'set',
-        username: "",
-        webhooks: [],
-    });
-    result.active = true;
-}
-if (!result.active) {
+// Only run scripts if `status` is true.
+if (!result.status) {
     return;
 }
 
@@ -263,7 +253,7 @@ class Yeet {
                     },
                 ],
             };
-            if (result.username && result.username.length) {
+            if (result.username.length) {
                 embedData.embeds[0].footer = {
                     text: `Sent by ${result.username}`,
                 };
@@ -279,7 +269,7 @@ class Yeet {
                 xhr.send(JSON.stringify(embedData));
                 sent ++;
             });
-            console.info(`%cImage sent to ${sent} webhook${sent.length > 1 ? 's' : ''}.`, `color: #${this.color.hex}`);
+            console.info(`%cImage sent to ${sent} webhook${sent > 1 ? 's' : ''}.`, `color: #${this.color.hex}`);
         });
     }
 

@@ -1,0 +1,317 @@
+$color-fore-day: #23272a;
+$color-back-day: #fefefe;
+$color-focus-day: #f0f0f0;
+
+$color-fore-night: #fefefe;
+$color-back-night: #2a2a2f;
+$color-focus-night: #3c3c3f;
+
+$color-inactive: #aaaaaa;
+
+$color-success: #00c800;
+$color-danger: #c80000;
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Calibri';
+    font-size: 14px;
+    min-width: 256px;
+}
+
+* {
+    border-color: inherit;
+    color: inherit;
+    outline-color: inherit;
+}
+
+button {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    outline: none;
+    user-select: none;
+}
+
+input {
+    border: none;
+    display: block;
+    font-family: 'Calibri';
+    font-size: 14px;
+}
+
+h1, h2, h3, h4, h5 {
+    margin: 0;
+    font-family: 'Helvetica';
+}
+
+h1 {
+    font-size: 22px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+.header {
+    padding: 10px 20px;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.content {
+    padding: 10px 20px;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    .section {
+        margin-bottom: 20px;
+        .section-title {
+            margin-bottom: 10px;
+        }
+    }
+    .section:last-child {
+        margin: 0;
+    }
+}
+
+.footer {
+    display: flex;
+    .control {
+        flex: 1;
+        padding: 12px;
+        text-align: center;
+        transition: background-color .15s;
+        &:hover {
+            background-color: $color-focus-day;
+        }
+        i {
+            font-size: 24px;
+        }
+    }
+}
+
+.alias {
+    display: block;
+    min-width: 175px;
+    padding: 3px 0;
+    &:not(.rgb) {
+        color: $color-inactive;
+    }
+}
+
+.input {
+    background-color: transparent;
+    border-bottom: 0 solid transparent;
+    min-width: 175px;
+    outline: none;
+    padding: 3px 0;
+    transition: background-color .15s;
+    &:focus {
+        border-width: 1px;
+        margin-bottom: -1px;
+    }
+    &::placeholder {
+        color: $color-inactive;
+    }
+}
+
+.cb-container {
+    display: block;
+    position: relative;
+    padding-left: 20px;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 14px;
+    .cb-checkmark {
+        position: absolute;
+        left: 3px;
+        top: -6px;
+        height: 12px;
+        width: 12px;
+        border-radius: 12px;
+        background-color: $color-inactive;
+    }
+    .webhook-active {
+        position: absolute;
+        opacity: 0;
+        left: 0;
+        top: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+    &:hover .webhook-active ~ .cb-checkmark {
+        box-shadow: 0 0 5px $color-success;
+    }
+    .webhook-active:checked ~ .cb-checkmark {
+        background-color: $color-success;
+    }
+}
+
+.webhook {
+    cursor: grab;
+    transition: background-color .15s;
+    .td-controls {
+        display: flex;
+        flex-direction: column;
+    }
+    &.editing {
+        background-color: $color-focus-day;
+        border-radius: 3px;
+        .icon-edit {
+            color: $color-success;
+        }
+        .icon-remove {
+            color: $color-danger;
+        }
+    }
+    &.inactive {
+        color: $color-inactive;
+    }
+    &.dragging {
+        opacity: 0.5;
+    }
+    &.target {
+        box-shadow: 0 0 5px 0 $color-inactive;
+    }
+    .btn {
+        width: 16px;
+        padding: 5px 2px;
+        cursor: pointer;
+        transition: opacity .2s;
+    }
+}
+
+.list-btn {
+    padding: 4px 6px;
+    margin: 10px 10px 0 0;
+    border-radius: 3px;
+    border-style: solid;
+    border-width: 2px;
+    font-weight: bold;
+}
+
+.sick-spin {
+    animation: spin .25s linear;
+}
+
+.tag {
+    background-color: $color-back-day;
+    border: 2px dashed $color-fore-day;
+    border-radius: 3px;
+    box-shadow: 0 0 0 2px $color-back-day;
+    color: $color-fore-day;
+    cursor: grabbing;
+    height: 30px;
+    line-height: 30px;
+    opacity: 0.8;
+    position: absolute;
+    text-align: center;
+    width: 175px;
+}
+
+#img-logo {
+    cursor: pointer;
+    transition: transform .3s;
+    width: 28px;
+    &:hover {
+        transform: scale(1.2);
+    }
+}
+
+#label-version {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+#input-username {
+    background-color: $color-focus-day;
+    padding: 3px;
+    width: calc(100% - 6px);
+}
+
+#label-empty {
+    font-style: italic;
+    color: #acacac;
+}
+
+#button-status i {
+    color: $color-inactive;
+}
+
+#popup {
+    background-color: $color-back-day;
+    color: $color-fore-day;
+    border-color: $color-focus-day;
+    transition: .15s;
+    &.night {
+        background-color: $color-back-night;
+        color: $color-fore-night;
+        border-color: $color-focus-night;
+        .webhook.editing {
+            background-color: $color-focus-night;
+        }
+        .footer .control:hover {
+            background-color: $color-focus-night;
+        }
+        .tag {
+            background-color: $color-back-night;
+            border-color: $color-fore-night;
+            box-shadow: 0 0 0 2px $color-back-night;
+            color: $color-fore-night;
+        }
+        #input-username {
+            background-color: $color-focus-night;
+        }
+    }
+    &.rgb .rgb {
+        animation: rgb 3s infinite;
+    }
+}
+
+@keyframes rgb {
+    0%   {
+        border-color: #ff0000;
+        color: #ff0000;
+        outline-color: #ff0000;
+    }
+    17%  {
+        border-color: #ffff00;
+        color: #ffff00;
+        outline-color: #ffff00;
+    }
+    33%  {
+        border-color: #00ff00;
+        color: #00ff00;
+        outline-color: #00ff00;
+    }
+    50%  {
+        border-color: #00ffff;
+        color: #00ffff;
+        outline-color: #00ffff;
+    }
+    67%  {
+        border-color: #0000ff;
+        color: #0000ff;
+        outline-color: #0000ff;
+    }
+    83%  {
+        border-color: #ff00ff;
+        color: #ff00ff;
+        outline-color: #ff00ff;
+    }
+    100% {
+        border-color: #ff0000;
+        color: #ff0000;
+        outline-color: #ff0000;
+    }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

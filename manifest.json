@@ -1,20 +1,16 @@
 {
+    "manifest_version": 2,
     "name": "Dank Share",
-    "version": "1.8",
+    "version": "2.0",
     "description": "Share your dankest images in one click",
-    "permissions": ["activeTab", "declarativeContent", "storage", "tabs"],
+    "permissions": ["activeTab", "contextMenus", "declarativeContent", "storage", "tabs"],
     "background": {
         "scripts": ["scripts/background.js"],
         "persistent": false
     },
-    "page_action": {
-        "default_popup": "popup/popup.html",
-        "default_icon": {
-            "16": "images/yeet16.png",
-            "32": "images/yeet32.png",
-            "48": "images/yeet48.png",
-            "128": "images/yeet128.png"
-        }
+    "browser_action": {
+        "default_title": "Dank Share",
+        "default_popup": "index.html"
     },
     "icons": {
         "16": "images/yeet16.png",
@@ -27,8 +23,8 @@
         "css": ["scripts/main.css"],
         "js": ["scripts/main.js"]
     }],
-    "manifest_version": 2,
     "web_accessible_resources" : [
         "images/*.png"
-    ]
+    ],
+    "content_security_policy": "script-src 'self' 'sha256-WXkOVTay1m8+1OiS8GHTpBvDHhBDIld+4oYrLllVjAQ='; object-src 'self'"
 }
